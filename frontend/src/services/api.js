@@ -58,7 +58,7 @@ class ApiService {
   }
 
   async register(userData) {
-    return this.makeRequest('/auth/register', {
+    return this.makeRequest('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
