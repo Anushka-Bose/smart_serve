@@ -6,6 +6,8 @@ import Sidebar from './comp/LandingPageComp/Sidebar';
 import LandingPage from './comp/LandingPageComp/LandingPage';
 import LoginPage from './pages/Login';
 import Signup from './pages/SignUp';
+import FoodShelfLifePage from './pages/FoodShelfLifePage';
+import Leaderboard from './comp/Leaderboard';
 import StudentDashboard from './pages/Dashboards/StudentDashboard';
 import NgoDashboard from './pages/Dashboards/NGODashboard';
 import StaffDashboard from './pages/Dashboards/StaffDashboard';
@@ -90,6 +92,18 @@ function AppContent() {
             <Route
               path="/signup"
               element={user ? <Navigate to={`/dashboard/${user.role}`} /> : <Signup onLogin={handleLogin} />}
+            />
+
+            {/* Food Shelf Life Route */}
+            <Route
+              path="/shelf-life"
+              element={user ? <FoodShelfLifePage /> : <Navigate to="/login" />}
+            />
+
+            {/* Leaderboard Route */}
+            <Route
+              path="/leaderboard"
+              element={<Leaderboard />}
             />
 
             {/* Protected Dashboard Routes */}

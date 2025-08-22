@@ -2,6 +2,7 @@ const express = require('express');
 const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const surplusRoutes = require("./routes/surplusRoutes");
+const foodShelfLifeRoutes = require("./routes/foodShelfLife");
 const { checkEventsToday } = require("./controllers/eventController");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const app = express();
@@ -22,6 +23,7 @@ app.use(cors(corsOptions));
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/surplus", surplusRoutes);
+app.use("/api/shelf-life", foodShelfLifeRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 
 // Keep only event reminder cron if you still need it
