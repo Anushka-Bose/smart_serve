@@ -34,9 +34,28 @@ exports.signup = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    res.status(201).json({ message: "User registered successfully", user: newUser,token });
+
+    // Create user object without password
+    const userResponse = {
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      foodPreference: newUser.foodPreference,
+      membersCount: newUser.membersCount,
+      distanceFromCollege: newUser.distanceFromCollege,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt
+    };
+
+    res.status(201).json({ 
+      message: "User registered successfully", 
+      user: userResponse,
+      token 
+    });
     
   } catch (err) {
+    console.error('Signup error:', err);
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
 };

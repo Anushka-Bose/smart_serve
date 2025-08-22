@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiService from '../services/api';
 import "./SignUpStyle.css"
 
 const Signup = ({ onLogin }) => {
@@ -10,8 +11,8 @@ const Signup = ({ onLogin }) => {
     confirmPassword: '',
     role: 'student',
     // NGO-specific fields
-    distance: '',
-    memberCount: '',
+    distanceFromCollege: '',
+    membersCount: '',
     // Student/Staff fields
     foodPreference: 'vegetarian'
   });
@@ -47,11 +48,11 @@ const Signup = ({ onLogin }) => {
     
     // NGO-specific validations
     if (formData.role === 'ngo') {
-      if (!formData.distance) newErrors.distance = "Distance is required";
-      else if (formData.distance < 0) newErrors.distance = "Distance must be positive";
+      if (!formData.distanceFromCollege) newErrors.distanceFromCollege = "Distance is required";
+      else if (formData.distanceFromCollege < 0) newErrors.distanceFromCollege = "Distance must be positive";
       
-      if (!formData.memberCount) newErrors.memberCount = "Member count is required";
-      else if (formData.memberCount < 1) newErrors.memberCount = "Must have at least 1 member";
+      if (!formData.membersCount) newErrors.membersCount = "Member count is required";
+      else if (formData.membersCount < 1) newErrors.membersCount = "Must have at least 1 member";
     }
     
     return newErrors;
@@ -60,6 +61,7 @@ const Signup = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrors({}); // Clear previous errors
     
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
@@ -75,8 +77,8 @@ const Signup = ({ onLogin }) => {
       
       // For non-NGO roles, remove NGO-specific fields
       if (submitData.role !== 'ngo') {
-        delete submitData.distance;
-        delete submitData.memberCount;
+        delete submitData.distanceFromCollege;
+        delete submitData.membersCount;
       }
       
       // For non-student/staff, remove food preference
@@ -84,25 +86,39 @@ const Signup = ({ onLogin }) => {
         delete submitData.foodPreference;
       }
       
-      const response = await fetch("/api/auth/signup", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
-      });
+      console.log('Submitting signup data:', submitData);
+      
+      // Use apiService instead of direct fetch
+      const response = await apiService.register(submitData);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        onLogin(data.user);
+      if (response.user) {
+        // Store token and user data
+        apiService.setAuthToken(response.token);
+        
+        const userData = {
+          ...response.user,
+          role: formData.role
+        };
+        
+        console.log('Signup successful:', userData);
+        onLogin(userData);
         navigate(`/dashboard/${formData.role}`);
       } else {
-        alert(data.message || 'Signup failed');
+        alert(response.message || 'Signup failed');
       }
     } catch (error) {
       console.error('Error during signup:', error);
-      alert('An error occurred during signup. Please try again.');
+      
+      // Show more specific error messages
+      if (error.message.includes('User already exists')) {
+        setErrors({ email: 'An account with this email already exists' });
+      } else if (error.message.includes('Food preference is required')) {
+        setErrors({ foodPreference: 'Food preference is required for students and staff' });
+      } else if (error.message.includes('validation failed')) {
+        setErrors({ general: 'Please check your input data and try again' });
+      } else {
+        setErrors({ general: error.message || 'An error occurred during signup. Please try again.' });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -116,34 +132,34 @@ const Signup = ({ onLogin }) => {
       <div className="form-section">
         <h3>NGO Information</h3>
         <div className="form-group">
-          <label htmlFor="distance">Distance from College (km)</label>
+          <label htmlFor="distanceFromCollege">Distance from College (km)</label>
           <input
             type="number"
-            id="distance"
-            name="distance"
-            value={formData.distance}
+            id="distanceFromCollege"
+            name="distanceFromCollege"
+            value={formData.distanceFromCollege}
             onChange={handleChange}
             min="0"
             step="0.1"
-            className={errors.distance ? 'error' : ''}
+            className={errors.distanceFromCollege ? 'error' : ''}
             placeholder="e.g., 5.2"
           />
-          {errors.distance && <span className="error-text">{errors.distance}</span>}
+          {errors.distanceFromCollege && <span className="error-text">{errors.distanceFromCollege}</span>}
         </div>
         
         <div className="form-group">
-          <label htmlFor="memberCount">Number of Members to Feed</label>
+          <label htmlFor="membersCount">Number of Members to Feed</label>
           <input
             type="number"
-            id="memberCount"
-            name="memberCount"
-            value={formData.memberCount}
+            id="membersCount"
+            name="membersCount"
+            value={formData.membersCount}
             onChange={handleChange}
             min="1"
-            className={errors.memberCount ? 'error' : ''}
+            className={errors.membersCount ? 'error' : ''}
             placeholder="e.g., 25"
           />
-          {errors.memberCount && <span className="error-text">{errors.memberCount}</span>}
+          {errors.membersCount && <span className="error-text">{errors.membersCount}</span>}
         </div>
       </div>
     );
@@ -186,6 +202,19 @@ const Signup = ({ onLogin }) => {
       <div className="auth-card">
         <h2>Create Your Account</h2>
         <p>Join our mission to reduce food waste</p>
+        
+        {errors.general && (
+          <div className="error-message" style={{
+            backgroundColor: '#ffebee',
+            color: '#c62828',
+            padding: '0.75rem',
+            borderRadius: '5px',
+            marginBottom: '1rem',
+            border: '1px solid #ffcdd2'
+          }}>
+            {errors.general}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-section">

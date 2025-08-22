@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: {
     type: String,
-    enum: ["student", "staff", "ngo", "canteen/hostel", "organizer", "admin"],
+    enum: ["student", "staff", "ngo", "canteen", "organiser", "admin"],
     required: true,
   },
   // Extra fields only for NGO
@@ -14,13 +14,13 @@ const userSchema = new mongoose.Schema({
   distanceFromCollege: { type: Number, required: function() { return this.role === "ngo"; }},
 
   foodPreference: {
-  type: String,
-  enum: ["veg", "non-veg"],
-  required: function () {
-    return this.role === "student" || this.role === "staff";
-  }
-},
-points: { type: Number, default: 0 }
+    type: String,
+    enum: ["vegetarian", "non-vegetarian", "no-preference"],
+    required: function () {
+      return this.role === "student" || this.role === "staff";
+    }
+  },
+  points: { type: Number, default: 0 }
 
 }, { timestamps: true });
 
