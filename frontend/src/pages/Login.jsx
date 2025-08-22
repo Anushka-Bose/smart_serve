@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import apiService from '../services/api';
 
@@ -8,12 +9,13 @@ const LoginPage = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
+      // Call the actual API for authentication
       const response = await apiService.login(email, password, userType);
       
       // Store token and user data
@@ -24,7 +26,7 @@ const LoginPage = ({ onLogin }) => {
         role: userType
       };
       
-      // Call the parent's onLogin function
+      // Call the parent's onLogin function with the authenticated user data
       onLogin(userData);
     } catch (error) {
       setError(error.message || 'Login failed. Please try again.');
@@ -45,7 +47,7 @@ const LoginPage = ({ onLogin }) => {
           </div>
         )}
         
-        <form onSubmit={handleLogin} style={styles.loginForm}>
+        <form onSubmit={handleSubmit} style={styles.loginForm}>
           <div style={styles.inputGroup}>
             <label htmlFor="email" style={styles.label}>Email Address</label>
             <input
@@ -114,155 +116,6 @@ const LoginPage = ({ onLogin }) => {
   );
 };
 
-const Dashboard = ({ user, onLogout }) => {
-  const [activeOption, setActiveOption] = useState(null);
-  const [apiResponse, setApiResponse] = useState('');
-
-  const handleApiCall = (option) => {
-    setActiveOption(option);
-    
-    // Mock API responses based on the option selected
-    const mockResponses = {
-      leaderboard: {
-        status: 'success',
-        data: [
-          { rank: 1, name: 'Eco Club', points: 2450 },
-          { rank: 2, name: 'Green Team', points: 2100 },
-          { rank: 3, name: 'Sustainability Society', points: 1950 }
-        ]
-      },
-      impact: {
-        status: 'success',
-        data: {
-          mealsDonated: 1250,
-          co2Reduced: 320, // kg
-          peopleHelped: 560
-        }
-      },
-      aiModel: {
-        status: 'success',
-        prediction: {
-          estimatedImpact: 245,
-          recommendedAction: 'Distribute to suburban areas',
-          confidence: 0.87
-        }
-      },
-      events: {
-        status: 'success',
-        data: {
-          eventId: 'EVT-2023-087',
-          name: 'Food Drive 2023',
-          date: '2023-12-15',
-          location: 'Central Park'
-        }
-      },
-      surplus: {
-        status: 'success',
-        data: {
-          surplusId: 'SUR-2023-026',
-          foodType: 'Produce',
-          weight: 120, // kg
-          loggedAt: new Date().toISOString()
-        }
-      }
-    };
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      setApiResponse(JSON.stringify(mockResponses[option] || { status: 'error', message: 'Unknown endpoint' }, null, 2));
-    }, 1000);
-  };
-
-  const renderDashboardOptions = () => {
-    switch (user.userType) {
-      case 'student':
-      case 'ngo':
-      case 'staff':
-        return (
-          <div style={styles.optionsGrid}>
-            <div style={styles.optionCard} onClick={() => handleApiCall('leaderboard')}>
-              <h3>View Leaderboard</h3>
-              <p>Check current rankings and points</p>
-            </div>
-            <div style={styles.optionCard} onClick={() => handleApiCall('impact')}>
-              <h3>Track Impact</h3>
-              <p>Monitor your contributions</p>
-            </div>
-          </div>
-        );
-      case 'organizer':
-        return (
-          <div style={styles.optionsGrid}>
-            <div style={styles.optionCard} onClick={() => handleApiCall('leaderboard')}>
-              <h3>View Leaderboard</h3>
-              <p>Check current rankings</p>
-            </div>
-            <div style={styles.optionCard} onClick={() => handleApiCall('impact')}>
-              <h3>Track Impact</h3>
-              <p>Monitor your contributions</p>
-            </div>
-            <div style={styles.optionCard} onClick={() => handleApiCall('aiModel')}>
-              <h3>Use AI Model</h3>
-              <p>Access predictive analytics</p>
-            </div>
-            <div style={styles.optionCard} onClick={() => handleApiCall('events')}>
-              <h3>Create Events</h3>
-              <p>Organize new activities</p>
-            </div>
-            <div style={styles.optionCard} onClick={() => handleApiCall('surplus')}>
-              <h3>Log Surplus</h3>
-              <p>Record excess resources</p>
-            </div>
-          </div>
-        );
-      case 'admin':
-        return (
-          <div style={styles.optionsGrid}>
-            <div style={styles.optionCard} onClick={() => handleApiCall('leaderboard')}>
-              <h3>View Leaderboard</h3>
-              <p>Check current rankings</p>
-            </div>
-            <div style={styles.optionCard} onClick={() => handleApiCall('leaderboard')}>
-              <h3>Update Leaderboard</h3>
-              <p>Modify rankings data</p>
-            </div>
-            <div style={styles.optionCard} onClick={() => handleApiCall('impact')}>
-              <h3>Track Impact</h3>
-              <p>Monitor system contributions</p>
-            </div>
-          </div>
-        );
-      default:
-        return <p>No options available for this user type.</p>;
-    }
-  };
-
-  return (
-    <div style={styles.dashboardContainer}>
-      <div style={styles.dashboardHeader}>
-        <h2>Welcome, {user.email}</h2>
-        <p>You are logged in as: <strong>{user.userType}</strong></p>
-        <button onClick={onLogout} style={styles.logoutButton}>Logout</button>
-      </div>
-      
-      <div style={styles.dashboardContent}>
-        <div style={styles.optionsPanel}>
-          <h3>Available Options</h3>
-          {renderDashboardOptions()}
-        </div>
-        
-        <div style={styles.apiResponse}>
-          <h3>API Response {activeOption ? `- ${activeOption}` : ''}</h3>
-          <pre style={styles.responsePre}>
-            {apiResponse || 'Select an option to see API response'}
-          </pre>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Styles
 const styles = {
   loginContainer: {
     display: 'flex',
@@ -316,11 +169,7 @@ const styles = {
     padding: '0.75rem',
     border: '1px solid #ddd',
     borderRadius: '5px',
-    fontSize: '1rem',
-    '&:disabled': {
-      backgroundColor: '#f5f5f5',
-      cursor: 'not-allowed'
-    }
+    fontSize: '1rem'
   },
   select: {
     width: '100%',
@@ -328,11 +177,7 @@ const styles = {
     border: '1px solid #ddd',
     borderRadius: '5px',
     fontSize: '1rem',
-    backgroundColor: 'white',
-    '&:disabled': {
-      backgroundColor: '#f5f5f5',
-      cursor: 'not-allowed'
-    }
+    backgroundColor: 'white'
   },
   loginButton: {
     padding: '0.75rem',
@@ -355,89 +200,7 @@ const styles = {
     backgroundColor: '#f8f9fa',
     borderRadius: '5px',
     fontSize: '0.9rem'
-  },
-  dashboardContainer: {
-    minHeight: '100vh',
-    backgroundColor: '#f0f2f5',
-    padding: '1rem'
-  },
-  dashboardHeader: {
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '10px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    marginBottom: '1.5rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  logoutButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#ff4757',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer'
-  },
-  dashboardContent: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '1.5rem'
-  },
-  optionsPanel: {
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '10px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
-  },
-  optionsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '1rem',
-    marginTop: '1rem'
-  },
-  optionCard: {
-    backgroundColor: '#f8f9fa',
-    padding: '1rem',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    border: '1px solid #e9ecef'
-  },
-  apiResponse: {
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '10px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
-  },
-  responsePre: {
-    backgroundColor: '#f8f9fa',
-    padding: '1rem',
-    borderRadius: '5px',
-    overflow: 'auto',
-    maxHeight: '300px',
-    fontSize: '0.9rem'
   }
 };
-
-// Add hover effect with JavaScript
-if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const optionCards = document.querySelectorAll('.option-card');
-    optionCards.forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        card.style.transform = 'translateY(-3px)';
-        card.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
-        card.style.backgroundColor = '#e3f2fd';
-      });
-      
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = 'none';
-        card.style.boxShadow = 'none';
-        card.style.backgroundColor = '#f8f9fa';
-      });
-    });
-  });
-}
 
 export default LoginPage;
