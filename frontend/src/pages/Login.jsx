@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+/* import React, { useState } from 'react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -394,5 +394,51 @@ if (typeof document !== 'undefined') {
     });
   });
 }
+
+export default LoginPage; */
+
+import React, { useState } from "react";
+
+const LoginPage = ({ onLogin }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState("student");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onLogin({ email, password, userType });
+  };
+
+  return (
+    <div>
+      <h2>Centralized Login</h2>
+      <form onSubmit={handleSubmit}>
+        <input 
+          type="email" 
+          placeholder="Email"
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          required 
+        />
+        <input 
+          type="password" 
+          placeholder="Password"
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          required 
+        />
+        <select value={userType} onChange={(e) => setUserType(e.target.value)}>
+          <option value="student">Student</option>
+          <option value="ngo">NGO</option>
+          <option value="staff">Staff</option>
+          <option value="organizer">Organizer</option>
+          <option value="admin">Admin</option>
+          <option value="canteen">Canteen</option>
+        </select>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  );
+};
 
 export default LoginPage;
