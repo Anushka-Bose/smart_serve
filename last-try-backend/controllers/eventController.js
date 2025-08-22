@@ -39,7 +39,7 @@ exports.checkEventsToday = async () => {
           from: process.env.EMAIL_USER,
           to: organizer.email,
           subject: `Event Reminder: ${event.title}`,
-          text: `Hello ${organizer.name},\n\nYour event "${event.title}" is today. Please log the surplus afterwards.\n\nThanks,\nSmart Food System`
+          text: `Hello ${organizer.name},\n\nYour event "${event.title}" is today. Please use the smart server engine to send surplus email .\n\nThanks,\nSmart Serve`
         });
         console.log(`📧 Reminder sent to ${organizer.email}`);
       }

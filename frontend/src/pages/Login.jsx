@@ -1,38 +1,49 @@
 import React, { useState } from 'react';
+import apiService from '../services/api';
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState('student');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // In a real app, you would validate credentials with a backend
-    setIsLoggedIn(true);
-    setCurrentUser({ email, userType });
-  };
+    setIsLoading(true);
+    setError('');
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setCurrentUser(null);
-    setEmail('');
-    setPassword('');
-    setUserType('student');
+    try {
+      const response = await apiService.login(email, password, userType);
+      
+      // Store token and user data
+      apiService.setAuthToken(response.token);
+      
+      const userData = {
+        ...response.user,
+        role: userType
+      };
+      
+      // Call the parent's onLogin function
+      onLogin(userData);
+    } catch (error) {
+      setError(error.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  if (isLoggedIn) {
-    return (
-      <Dashboard user={currentUser} onLogout={handleLogout} />
-    );
-  }
 
   return (
     <div style={styles.loginContainer}>
       <div style={styles.loginBox}>
         <h2 style={styles.loginTitle}>Centralized Login System</h2>
         <p style={styles.subtitle}>Sign in to access your dashboard</p>
+        
+        {error && (
+          <div style={styles.errorMessage}>
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleLogin} style={styles.loginForm}>
           <div style={styles.inputGroup}>
@@ -45,6 +56,7 @@ const LoginPage = () => {
               style={styles.input}
               placeholder="Enter your email"
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -58,6 +70,7 @@ const LoginPage = () => {
               style={styles.input}
               placeholder="Enter your password"
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -68,22 +81,33 @@ const LoginPage = () => {
               value={userType}
               onChange={(e) => setUserType(e.target.value)}
               style={styles.select}
+              disabled={isLoading}
             >
               <option value="student">Student</option>
               <option value="ngo">NGO</option>
               <option value="staff">Staff</option>
-              <option value="organizer">Organizer</option>
+              <option value="organiser">Organiser</option>
+              <option value="canteen">Canteen</option>
               <option value="admin">Admin</option>
             </select>
           </div>
           
-          <button type="submit" style={styles.loginButton}>Login</button>
+          <button 
+            type="submit" 
+            style={{
+              ...styles.loginButton,
+              ...(isLoading && styles.loginButtonDisabled)
+            }}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Logging in...' : 'Login'}
+          </button>
         </form>
         
         <div style={styles.demoInfo}>
           <h4>Demo Credentials:</h4>
-          <p>Any email/password will work for demonstration</p>
-          <p>Select different user types to see various dashboards</p>
+          <p>Use the credentials you've set up in your backend</p>
+          <p>Make sure your backend server is running on port 4000</p>
         </div>
       </div>
     </div>
@@ -266,6 +290,14 @@ const styles = {
     color: '#666',
     marginBottom: '1.5rem'
   },
+  errorMessage: {
+    backgroundColor: '#ffebee',
+    color: '#c62828',
+    padding: '0.75rem',
+    borderRadius: '5px',
+    marginBottom: '1rem',
+    border: '1px solid #ffcdd2'
+  },
   loginForm: {
     display: 'flex',
     flexDirection: 'column'
@@ -284,7 +316,11 @@ const styles = {
     padding: '0.75rem',
     border: '1px solid #ddd',
     borderRadius: '5px',
-    fontSize: '1rem'
+    fontSize: '1rem',
+    '&:disabled': {
+      backgroundColor: '#f5f5f5',
+      cursor: 'not-allowed'
+    }
   },
   select: {
     width: '100%',
@@ -292,7 +328,11 @@ const styles = {
     border: '1px solid #ddd',
     borderRadius: '5px',
     fontSize: '1rem',
-    backgroundColor: 'white'
+    backgroundColor: 'white',
+    '&:disabled': {
+      backgroundColor: '#f5f5f5',
+      cursor: 'not-allowed'
+    }
   },
   loginButton: {
     padding: '0.75rem',
@@ -302,7 +342,12 @@ const styles = {
     borderRadius: '5px',
     fontSize: '1rem',
     cursor: 'pointer',
-    marginTop: '1rem'
+    marginTop: '1rem',
+    transition: 'background-color 0.3s ease'
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#cccccc',
+    cursor: 'not-allowed'
   },
   demoInfo: {
     marginTop: '1.5rem',

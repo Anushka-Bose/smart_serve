@@ -112,7 +112,6 @@ async function distributeFoodLogic(surplus) {
   return surplus;
 }
 
-module.exports = { distributeFoodLogic };
 
 
 module.exports = { distributeFoodLogic };

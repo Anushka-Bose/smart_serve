@@ -10,11 +10,15 @@ const eventSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  city:{type:String},
+  meals_served:{type:Number},
+  kitchen_staff:{type:Number},
 
   // Reference to surplus entries
-  surplusEntries: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "Surplus" }
-  ],
+  food_category:{
+    type:String,
+    enum:['grains','meat','vegetables','dairy']
+  },
 
   reminderSent: { type: Boolean, default: false }
 }, { timestamps: true });

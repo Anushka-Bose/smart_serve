@@ -18,6 +18,7 @@ import StaffDashboard from './pages/Dashboards/StaffDashboard';
 import OrganiserDashboard from './pages/Dashboards/OrganiserDashboard';
 import CanteenDashboard from './pages/Dashboards/CanteenDashboard';
 import AdminDashboard from './pages/Dashboards/AdminDashboard';
+import apiService from './services/api';
 import './App.css';
 
 function App() {
@@ -28,7 +29,9 @@ function App() {
   useEffect(() => {
     // Check if user is logged in on app load
     const userData = localStorage.getItem('user');
-    if (userData) {
+    const token = localStorage.getItem('token');
+    
+    if (userData && token) {
       setUser(JSON.parse(userData));
     }
     setIsLoading(false);
@@ -39,10 +42,19 @@ function App() {
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    setSidebarVisible(false);
+  const handleLogout = async () => {
+    try {
+      // Call logout API
+      await apiService.logout();
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Clear local state regardless of API call success
+      setUser(null);
+      localStorage.removeItem('user');
+      apiService.removeAuthToken();
+      setSidebarVisible(false);
+    }
   };
 
   const toggleSidebar = () => {
