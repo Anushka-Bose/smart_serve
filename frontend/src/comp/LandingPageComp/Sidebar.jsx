@@ -1,3 +1,6 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
 /* 
 function Sidebar(){
   return (
@@ -31,7 +34,27 @@ const Sidebar = ({ user, isVisible, onClose }) => {
       { id: 'analytics', label: 'Analytics', icon: 'chart-line', path: '/dashboard/ngo' },
       { id: 'info', label: 'NGO Info', icon: 'info-circle', path: '/dashboard/ngo' }
     ],
-    // Add other role menu items here
+    staff: [
+      { id: 'food', label: 'Available Food', icon: 'utensils', path: '/dashboard/staff' },
+      { id: 'leaderboard', label: 'Leaderboard', icon: 'trophy', path: '/dashboard/staff' },
+      { id: 'analytics', label: 'Analytics', icon: 'chart-line', path: '/dashboard/staff' }
+    ],
+    organiser: [
+      { id: 'food', label: 'Available Food', icon: 'utensils', path: '/dashboard/organiser' },
+      { id: 'leaderboard', label: 'Leaderboard', icon: 'trophy', path: '/dashboard/organiser' },
+      { id: 'analytics', label: 'Analytics', icon: 'chart-line', path: '/dashboard/organiser' },
+      { id: 'events', label: 'Manage Events', icon: 'calendar', path: '/dashboard/organiser' }
+    ],
+    canteen: [
+      { id: 'food', label: 'Available Food', icon: 'utensils', path: '/dashboard/canteen' },
+      { id: 'surplus', label: 'Log Surplus', icon: 'plus-circle', path: '/dashboard/canteen' },
+      { id: 'analytics', label: 'Analytics', icon: 'chart-line', path: '/dashboard/canteen' }
+    ],
+    admin: [
+      { id: 'dashboard', label: 'Admin Dashboard', icon: 'tachometer-alt', path: '/dashboard/admin' },
+      { id: 'users', label: 'Manage Users', icon: 'users', path: '/dashboard/admin' },
+      { id: 'analytics', label: 'System Analytics', icon: 'chart-line', path: '/dashboard/admin' }
+    ]
   };
 
   return (
