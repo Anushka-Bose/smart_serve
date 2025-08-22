@@ -98,7 +98,7 @@ class ApiService {
 
   // Surplus endpoints
   async getSurplus() {
-    return this.makeRequest('/surplus');
+    return this.makeRequest('/surplus', { method: 'GET' });
   }
 
   async createSurplus(surplusData) {
@@ -108,17 +108,20 @@ class ApiService {
     });
   }
 
-  async updateSurplus(surplusId, surplusData) {
-    return this.makeRequest(`/surplus/${surplusId}`, {
+  async updateSurplus(id, surplusData) {
+    return this.makeRequest(`/surplus/${id}`, {
       method: 'PUT',
       body: JSON.stringify(surplusData),
     });
   }
 
-  async deleteSurplus(surplusId) {
-    return this.makeRequest(`/surplus/${surplusId}`, {
-      method: 'DELETE',
-    });
+  async deleteSurplus(id) {
+    return this.makeRequest(`/surplus/${id}`, { method: 'DELETE' });
+  }
+
+  // ML Predictions
+  async getMLPredictions() {
+    return this.makeRequest('/surplus/predictions', { method: 'GET' });
   }
 
   // Leaderboard endpoints

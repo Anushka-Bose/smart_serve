@@ -18,16 +18,37 @@ export default function StudentDashboard({ user }) {
     setError('');
 
     try {
-      // Fetch data from multiple endpoints
-      const [leaderboard, events, surplus] = await Promise.all([
-        apiService.getLeaderboard().catch(err => ({ data: [] })),
-        apiService.getEvents().catch(err => ({ data: [] })),
-        apiService.getSurplus().catch(err => ({ data: [] }))
+      // Fetch data from multiple endpoints with better error handling
+      const [leaderboard, events, surplus] = await Promise.allSettled([
+        apiService.getLeaderboard(),
+        apiService.getEvents(),
+        apiService.getSurplus()
       ]);
 
-      setLeaderboardData(leaderboard.data || []);
-      setEventsData(events.data || []);
-      setSurplusData(surplus.data || []);
+      // Handle leaderboard data
+      if (leaderboard.status === 'fulfilled') {
+        setLeaderboardData(leaderboard.value.data || []);
+      } else {
+        console.error('Leaderboard fetch failed:', leaderboard.reason);
+        setLeaderboardData([]);
+      }
+
+      // Handle events data
+      if (events.status === 'fulfilled') {
+        setEventsData(events.value.data || []);
+      } else {
+        console.error('Events fetch failed:', events.reason);
+        setEventsData([]);
+      }
+
+      // Handle surplus data
+      if (surplus.status === 'fulfilled') {
+        setSurplusData(surplus.value.data || []);
+      } else {
+        console.error('Surplus fetch failed:', surplus.reason);
+        setSurplusData([]);
+      }
+
     } catch (err) {
       setError('Failed to load dashboard data');
       console.error('Dashboard data fetch error:', err);
@@ -36,15 +57,15 @@ export default function StudentDashboard({ user }) {
     }
   };
 
-  const handleLogSurplus = async (surplusData) => {
+  const handleLogout = async () => {
     try {
-      await apiService.createSurplus(surplusData);
-      // Refresh surplus data
-      const updatedSurplus = await apiService.getSurplus();
-      setSurplusData(updatedSurplus.data || []);
-    } catch (err) {
-      setError('Failed to log surplus');
-      console.error('Surplus creation error:', err);
+      await apiService.logout();
+      // Redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect even if logout API fails
+      window.location.href = '/login';
     }
   };
 
@@ -59,8 +80,15 @@ export default function StudentDashboard({ user }) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1>Welcome, {user?.name || 'Student'}!</h1>
-        <p>Student Dashboard - Track your impact and stay updated</p>
+        <div style={styles.headerContent}>
+          <div>
+            <h1>Welcome, {user?.name || 'Student'}!</h1>
+            <p>Student Dashboard - Track your impact and stay updated</p>
+          </div>
+          <button onClick={handleLogout} style={styles.logoutButton}>
+            🚪 Logout
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -131,21 +159,14 @@ export default function StudentDashboard({ user }) {
         <div style={styles.card}>
           <h2>⚡ Quick Actions</h2>
           <div style={styles.actionsList}>
-            <button 
-              style={styles.actionButton}
-              onClick={() => handleLogSurplus({
-                foodType: 'Sample Food',
-                weight: 10,
-                description: 'Sample surplus entry'
-              })}
-            >
-              Log Surplus
-            </button>
             <button style={styles.actionButton}>
               View All Events
             </button>
             <button style={styles.actionButton}>
               Check Impact
+            </button>
+            <button style={styles.actionButton}>
+              View Leaderboard
             </button>
           </div>
         </div>
@@ -167,6 +188,12 @@ const styles = {
     padding: '20px',
     backgroundColor: '#f8f9fa',
     borderRadius: '10px'
+  },
+  headerContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%'
   },
   loading: {
     textAlign: 'center',
@@ -190,6 +217,17 @@ const styles = {
     padding: '8px 16px',
     borderRadius: '4px',
     cursor: 'pointer'
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.3s ease',
+    fontWeight: '500'
   },
   grid: {
     display: 'grid',

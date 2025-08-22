@@ -3,10 +3,29 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const Leaderboard = require("../models/Leaderboard");
-const { authMiddleware } = require("../middleware/authMiddleware");
+const { authenticateToken } = require("../middleware/authMiddleware");
+
+// GET leaderboard (root endpoint)
+router.get("/", async (req, res) => {
+  try {
+    // Get top users by points
+    const users = await User.find({}, "name role points").sort({ points: -1 }).limit(10);
+    
+    const leaderboard = users.map((user, index) => ({
+      rank: index + 1,
+      name: user.name,
+      points: user.points || 0
+    }));
+    
+    res.json({ data: leaderboard });
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    res.status(500).json({ message: "Failed to fetch leaderboard", error: error.message });
+  }
+});
 
 // ✅ Admin gives/takes points after verifying food pickup
-router.post("/update-points", authMiddleware, async (req, res) => {
+router.post("/update-points", authenticateToken, async (req, res) => {
   try {
     // Only allow admin
     if (req.user.role !== "admin") {

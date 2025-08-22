@@ -51,6 +51,18 @@ export default function NGODashboard({ user }) {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await apiService.logout();
+      // Redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect even if logout API fails
+      window.location.href = '/login';
+    }
+  };
+
   if (loading) {
     return (
       <div style={styles.container}>
@@ -62,11 +74,18 @@ export default function NGODashboard({ user }) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1>Welcome, {user?.name || 'NGO'}!</h1>
-        <p>NGO Dashboard - Manage donations and track impact</p>
-        {user?.membersCount && (
-          <p>Organization Size: {user.membersCount} members</p>
-        )}
+        <div style={styles.headerContent}>
+          <div>
+            <h1>Welcome, {user?.name || 'NGO'}!</h1>
+            <p>NGO Dashboard - Manage donations and track impact</p>
+            {user?.membersCount && (
+              <p>Organization Size: {user.membersCount} members</p>
+            )}
+          </div>
+          <button onClick={handleLogout} style={styles.logoutButton}>
+            🚪 Logout
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -192,6 +211,11 @@ const styles = {
     backgroundColor: '#f8f9fa',
     borderRadius: '10px'
   },
+  headerContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
   loading: {
     textAlign: 'center',
     fontSize: '18px',
@@ -214,6 +238,15 @@ const styles = {
     padding: '8px 16px',
     borderRadius: '4px',
     cursor: 'pointer'
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    padding: '8px 16px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px'
   },
   grid: {
     display: 'grid',

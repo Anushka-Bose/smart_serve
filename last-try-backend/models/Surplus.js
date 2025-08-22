@@ -17,7 +17,12 @@ const surplusSchema = new mongoose.Schema({
   claimToken: { type: String, unique: true },
   claimedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   isClaimed: { type: Boolean, default: false },
-  claimedAt: { type: Date }
+  claimedAt: { type: Date },
+
+  // ML Prediction fields
+  mlPredictedWaste: { type: Number }, // Predicted waste in kg
+  mlConfidence: { type: String }, // ML model confidence level
+  mlPredictionDate: { type: Date, default: Date.now } // When prediction was made
 }, { timestamps: true });
 
 module.exports = mongoose.model("Surplus", surplusSchema);

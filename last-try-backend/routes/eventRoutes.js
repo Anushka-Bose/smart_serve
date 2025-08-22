@@ -1,16 +1,28 @@
 const express = require("express");
 const { createEvent } = require("../controllers/eventController");
 const {logSurplus}=require("../controllers/surplusController")
-const { authMiddleware, requireOrganizer } = require("../middleware/authMiddleware");
+const { authenticateToken, requireOrganizer } = require("../middleware/authMiddleware");
 const { checkEventsToday } = require("../controllers/eventController");
 const { checkFoodSafety } = require("../services/foodSafetyService");
 const transporter=require("../config/email");
 
 const router = express.Router();
 
-router.post("/create", authMiddleware, requireOrganizer, createEvent);
+// GET all events
+router.get("/", async (req, res) => {
+  try {
+    const Event = require("../models/Event");
+    const events = await Event.find().sort({ date: 1 });
+    res.json({ data: events });
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ message: "Failed to fetch events", error: error.message });
+  }
+});
 
-router.post("/log-surplus/:eventId", authMiddleware, logSurplus);
+router.post("/create", authenticateToken, requireOrganizer, createEvent);
+router.post("/log-surplus/:eventId", authenticateToken, logSurplus);
+
 
 //Eta remove kore debo
 router.get("/test-reminder", async (req, res) => {
