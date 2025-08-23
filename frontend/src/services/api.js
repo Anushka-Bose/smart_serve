@@ -49,6 +49,14 @@ class ApiService {
     }
   }
 
+  // Generic POST method
+  async post(endpoint, data) {
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // Auth endpoints
   async login(email, password, role) {
     return this.makeRequest('/auth/login', {

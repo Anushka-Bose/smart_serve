@@ -49,6 +49,35 @@ class FoodShelfLifeResponse(BaseModel):
     isSafeToEat: bool
     riskLevel: str
 
+class ImpactTrackingRequest(BaseModel):
+    userId: str = Field(..., description="User ID")
+    userType: str = Field(..., description="Type of user: student, ngo, staff, organiser, admin, canteen")
+
+class ImpactTrackingResponse(BaseModel):
+    userId: str
+    userType: str
+    impact: str
+    foodWasteReduced: float
+    carbonFootprintSaved: float
+    mealsSaved: int
+    impactScore: float
+
+class SurplusPredictionRequest(BaseModel):
+    eventName: str = Field(..., description="Name of the event")
+    guestCount: int = Field(..., ge=1, description="Number of guests")
+    eventType: str = Field(..., description="Type of event: wedding, corporate, birthday, etc.")
+    mealType: str = Field(..., description="Type of meal: breakfast, lunch, dinner, snacks")
+    duration: int = Field(..., ge=1, le=24, description="Event duration in hours")
+
+class SurplusPredictionResponse(BaseModel):
+    eventName: str
+    guestCount: int
+    predictedSurplus: float
+    surplusPercentage: float
+    recommendedActions: list
+    estimatedWaste: float
+    potentialSavings: float
+
 def calculate_temperature_factor(temp):
     """Calculate temperature factor affecting shelf life"""
     if temp <= 4:  # Refrigeration
@@ -92,6 +121,120 @@ def get_base_shelf_life(food_item, category):
         "FRUITS": 96
     }
     return category_defaults.get(category, 48)
+
+def calculate_user_impact(user_type):
+    """Calculate impact based on user type"""
+    # Mock impact calculations - in real implementation, this would fetch from database
+    impact_data = {
+        "student": {
+            "foodWasteReduced": 15.5,
+            "carbonFootprintSaved": 8.2,
+            "mealsSaved": 25,
+            "impactScore": 75.5
+        },
+        "ngo": {
+            "foodWasteReduced": 125.0,
+            "carbonFootprintSaved": 65.8,
+            "mealsSaved": 200,
+            "impactScore": 92.3
+        },
+        "staff": {
+            "foodWasteReduced": 45.2,
+            "carbonFootprintSaved": 23.7,
+            "mealsSaved": 75,
+            "impactScore": 81.8
+        },
+        "organiser": {
+            "foodWasteReduced": 89.7,
+            "carbonFootprintSaved": 47.1,
+            "mealsSaved": 150,
+            "impactScore": 88.9
+        },
+        "admin": {
+            "foodWasteReduced": 250.0,
+            "carbonFootprintSaved": 131.5,
+            "mealsSaved": 400,
+            "impactScore": 95.2
+        },
+        "canteen": {
+            "foodWasteReduced": 67.3,
+            "carbonFootprintSaved": 35.4,
+            "mealsSaved": 110,
+            "impactScore": 85.1
+        }
+    }
+    
+    return impact_data.get(user_type, {
+        "foodWasteReduced": 0.0,
+        "carbonFootprintSaved": 0.0,
+        "mealsSaved": 0,
+        "impactScore": 0.0
+    })
+
+def predict_surplus(event_name, guest_count, event_type, meal_type, duration):
+    """Predict surplus based on event details"""
+    
+    # Base surplus percentages by event type
+    event_type_factors = {
+        "wedding": 0.25,  # 25% surplus typically
+        "corporate": 0.15,  # 15% surplus
+        "birthday": 0.20,  # 20% surplus
+        "conference": 0.10,  # 10% surplus
+        "party": 0.30,  # 30% surplus
+        "meeting": 0.05,  # 5% surplus
+        "default": 0.15
+    }
+    
+    # Meal type adjustments
+    meal_type_factors = {
+        "breakfast": 0.8,  # Less waste for breakfast
+        "lunch": 1.0,  # Standard
+        "dinner": 1.2,  # More waste for dinner
+        "snacks": 0.6,  # Less waste for snacks
+        "default": 1.0
+    }
+    
+    # Duration adjustments
+    duration_factor = min(1.5, max(0.5, duration / 4))  # Normalize to 4-hour baseline
+    
+    # Calculate base surplus
+    base_factor = event_type_factors.get(event_type.lower(), event_type_factors["default"])
+    meal_factor = meal_type_factors.get(meal_type.lower(), meal_type_factors["default"])
+    
+    # Calculate surplus percentage
+    surplus_percentage = base_factor * meal_factor * duration_factor
+    
+    # Calculate predicted surplus (in kg)
+    # Assume average 0.5kg food per person per meal
+    base_food_per_person = 0.5
+    total_food = guest_count * base_food_per_person
+    predicted_surplus = total_food * surplus_percentage
+    
+    # Calculate potential savings (assuming $10 per kg of food)
+    potential_savings = predicted_surplus * 10
+    
+    # Generate recommendations
+    recommendations = []
+    if surplus_percentage > 0.25:
+        recommendations.append("Consider reducing portion sizes")
+        recommendations.append("Plan for multiple meal services")
+    if guest_count > 100:
+        recommendations.append("Implement buffet-style serving")
+        recommendations.append("Set up donation partnerships")
+    if duration > 6:
+        recommendations.append("Plan for multiple meal breaks")
+        recommendations.append("Consider food preservation methods")
+    
+    recommendations.append("Coordinate with local NGOs for surplus distribution")
+    recommendations.append("Use real-time tracking for better planning")
+    
+    return {
+        "predictedSurplus": round(predicted_surplus, 2),
+        "surplusPercentage": round(surplus_percentage * 100, 1),
+        "recommendedActions": recommendations,
+        "estimatedWaste": round(predicted_surplus * 0.3, 2),  # 30% of surplus becomes waste
+        "potentialSavings": round(potential_savings, 2)
+    }
 
 @app.get('/')
 async def root():
@@ -139,6 +282,53 @@ async def predict_shelf_life(request: FoodShelfLifeRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+
+@app.post('/track-impact', response_model=ImpactTrackingResponse)
+async def track_impact(request: ImpactTrackingRequest):
+    try:
+        # Calculate impact based on user type
+        impact_data = calculate_user_impact(request.userType)
+        
+        # Generate impact message
+        impact_message = f"Great work! You've helped reduce {impact_data['foodWasteReduced']}kg of food waste, saved {impact_data['carbonFootprintSaved']}kg CO2, and provided {impact_data['mealsSaved']} meals to those in need."
+        
+        return ImpactTrackingResponse(
+            userId=request.userId,
+            userType=request.userType,
+            impact=impact_message,
+            foodWasteReduced=impact_data['foodWasteReduced'],
+            carbonFootprintSaved=impact_data['carbonFootprintSaved'],
+            mealsSaved=impact_data['mealsSaved'],
+            impactScore=impact_data['impactScore']
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Impact tracking error: {str(e)}")
+
+@app.post('/predict-surplus', response_model=SurplusPredictionResponse)
+async def predict_surplus_endpoint(request: SurplusPredictionRequest):
+    try:
+        # Predict surplus based on event details
+        prediction_data = predict_surplus(
+            request.eventName,
+            request.guestCount,
+            request.eventType,
+            request.mealType,
+            request.duration
+        )
+        
+        return SurplusPredictionResponse(
+            eventName=request.eventName,
+            guestCount=request.guestCount,
+            predictedSurplus=prediction_data['predictedSurplus'],
+            surplusPercentage=prediction_data['surplusPercentage'],
+            recommendedActions=prediction_data['recommendedActions'],
+            estimatedWaste=prediction_data['estimatedWaste'],
+            potentialSavings=prediction_data['potentialSavings']
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Surplus prediction error: {str(e)}")
 
 @app.get('/food-categories')
 async def get_food_categories():

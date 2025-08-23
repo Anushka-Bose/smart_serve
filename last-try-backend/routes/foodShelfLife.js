@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 const {
   createShelfLifePrediction,
   getUserShelfLifePredictions,
@@ -11,7 +11,7 @@ const {
 } = require('../controllers/foodShelfLifeController');
 
 // All routes require authentication
-router.use(authenticateToken);
+router.use(authMiddleware);
 
 // Create new shelf life prediction
 router.post('/predict', createShelfLifePrediction);
