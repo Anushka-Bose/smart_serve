@@ -86,6 +86,7 @@ def train_model(preprocessed_path, model_save_path):
     }
 
     print(f"Best parameters: {search.best_params_}")
+    print(f"Train MSE: {metrics['train_mse']:.4f}, Test MSE: {metrics['test_mse']:.4f}")
     print(f"Train R²: {metrics['train_r2']:.4f}, Test R²: {metrics['test_r2']:.4f}")
 
     # Save model with metadata
