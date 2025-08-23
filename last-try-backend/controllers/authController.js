@@ -34,9 +34,28 @@ exports.signup = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    res.status(201).json({ message: "User registered successfully", user: newUser,token });
+
+    // Create user object without password
+    const userResponse = {
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      foodPreference: newUser.foodPreference,
+      membersCount: newUser.membersCount,
+      distanceFromCollege: newUser.distanceFromCollege,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt
+    };
+
+    res.status(201).json({ 
+      message: "User registered successfully", 
+      user: userResponse,
+      token 
+    });
     
   } catch (err) {
+    console.error('Signup error:', err);
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
 };
@@ -61,8 +80,36 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.json({ message: "Login successful", token, role: user.role });
+    // Create user object without password
+    const userResponse = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      foodPreference: user.foodPreference,
+      membersCount: user.membersCount,
+      distanceFromCollege: user.distanceFromCollege,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+
+    res.json({ 
+      message: "Login successful", 
+      token, 
+      user: userResponse 
+    });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
+  }
+};
+
+// Logout Controller
+exports.logout = async (req, res) => {
+  try {
+    // In a stateless JWT setup, the client handles token removal
+    // The server can't invalidate JWT tokens, but we can log the logout
+    res.json({ message: "Logout successful" });
+  } catch (err) {
+    res.status(500).json({ message: "Logout failed", error: err.message });
   }
 };

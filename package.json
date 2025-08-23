@@ -1,0 +1,24 @@
+{
+  "name": "smart-surplus-system",
+  "version": "1.0.0",
+  "description": "Full-stack smart surplus management system",
+  "scripts": {
+    "install-all": "npm install && cd last-try-backend && npm install && cd ../frontend && npm install",
+    "backend": "cd last-try-backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "start": "concurrently \"cd last-try-backend && npm start\" \"cd frontend && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "surplus",
+    "food-management",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC"
+} 

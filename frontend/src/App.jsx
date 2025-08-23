@@ -6,12 +6,15 @@ import Sidebar from './comp/LandingPageComp/Sidebar';
 import LandingPage from './comp/LandingPageComp/LandingPage';
 import LoginPage from './pages/Login';
 import Signup from './pages/SignUp';
+import FoodShelfLifePage from './pages/FoodShelfLifePage';
+import Leaderboard from './comp/Leaderboard';
 import StudentDashboard from './pages/Dashboards/StudentDashboard';
 import NgoDashboard from './pages/Dashboards/NGODashboard';
 import StaffDashboard from './pages/Dashboards/StaffDashboard';
 import OrganiserDashboard from './pages/Dashboards/OrganiserDashboard';
 import CanteenDashboard from './pages/Dashboards/CanteenDashboard';
 import AdminDashboard from './pages/Dashboards/AdminDashboard';
+import apiService from './services/api';
 import './App.css';
 
 function AppContent() {
@@ -24,7 +27,9 @@ function AppContent() {
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
+    const token = localStorage.getItem('token');
+    
+    if (userData && token) {
       setUser(JSON.parse(userData));
     }
     setIsLoading(false);
@@ -35,10 +40,19 @@ function AppContent() {
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    setSidebarVisible(false);
+  const handleLogout = async () => {
+    try {
+      // Call logout API
+      await apiService.logout();
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Clear local state regardless of API call success
+      setUser(null);
+      localStorage.removeItem('user');
+      apiService.removeAuthToken();
+      setSidebarVisible(false);
+    }
   };
 
   const toggleSidebar = () => {
@@ -78,6 +92,18 @@ function AppContent() {
             <Route
               path="/signup"
               element={user ? <Navigate to={`/dashboard/${user.role}`} /> : <Signup onLogin={handleLogin} />}
+            />
+
+            {/* Food Shelf Life Route */}
+            <Route
+              path="/shelf-life"
+              element={user ? <FoodShelfLifePage /> : <Navigate to="/login" />}
+            />
+
+            {/* Leaderboard Route */}
+            <Route
+              path="/leaderboard"
+              element={<Leaderboard />}
             />
 
             {/* Protected Dashboard Routes */}

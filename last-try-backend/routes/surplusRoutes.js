@@ -2,14 +2,45 @@
 const express = require("express");
 const Surplus = require("../models/Surplus");
 const surplusController = require("../controllers/surplusController");
-const {authMiddleware} = require("../middleware/authMiddleware");
+const {authenticateToken} = require("../middleware/authMiddleware");
 const User = require("../models/User");
 const transporter=require('../config/email')
+const { getUpcomingEventPredictions } = require("../services/distributionService");
 
 
 const router = express.Router();
 
-router.post("/:eventId/log", authMiddleware, surplusController.logSurplus);
+// GET all surplus
+router.get("/", async (req, res) => {
+  try {
+    const surplus = await Surplus.find().sort({ createdAt: -1 });
+    res.json({ data: surplus });
+  } catch (error) {
+    console.error("Error fetching surplus:", error);
+    res.status(500).json({ message: "Failed to fetch surplus", error: error.message });
+  }
+});
+
+// GET ML predictions for upcoming events
+router.get("/predictions", authenticateToken, async (req, res) => {
+  try {
+    const predictions = await getUpcomingEventPredictions();
+    res.json({ 
+      success: true, 
+      data: predictions,
+      message: "ML predictions retrieved successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching ML predictions:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch ML predictions", 
+      error: error.message 
+    });
+  }
+});
+
+router.post("/:eventId/log", authenticateToken, surplusController.logSurplus);
 //router.post("/:surplusId/distribute", authMiddleware, surplusController.distributeFood);
 
 router.get("/claim/:id", async (req, res) => {

@@ -1,32 +1,29 @@
-
 import React, { useState } from 'react';
 import apiService from '../services/api';
 
-const LoginPage = ({ onLogin }) => {
+const LoginCanteen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('student');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
-      // Call the actual API for authentication
-      const response = await apiService.login(email, password, userType);
+      const response = await apiService.login(email, password, 'canteen');
       
       // Store token and user data
       apiService.setAuthToken(response.token);
       
       const userData = {
         ...response.user,
-        role: userType
+        role: 'canteen'
       };
       
-      // Call the parent's onLogin function with the authenticated user data
+      // Call the parent's onLogin function
       onLogin(userData);
     } catch (error) {
       setError(error.message || 'Login failed. Please try again.');
@@ -38,8 +35,8 @@ const LoginPage = ({ onLogin }) => {
   return (
     <div style={styles.loginContainer}>
       <div style={styles.loginBox}>
-        <h2 style={styles.loginTitle}>Centralized Login System</h2>
-        <p style={styles.subtitle}>Sign in to access your dashboard</p>
+        <h2 style={styles.loginTitle}>Canteen Login</h2>
+        <p style={styles.subtitle}>Sign in to access your canteen management dashboard</p>
         
         {error && (
           <div style={styles.errorMessage}>
@@ -47,7 +44,7 @@ const LoginPage = ({ onLogin }) => {
           </div>
         )}
         
-        <form onSubmit={handleSubmit} style={styles.loginForm}>
+        <form onSubmit={handleLogin} style={styles.loginForm}>
           <div style={styles.inputGroup}>
             <label htmlFor="email" style={styles.label}>Email Address</label>
             <input
@@ -76,24 +73,6 @@ const LoginPage = ({ onLogin }) => {
             />
           </div>
           
-          <div style={styles.inputGroup}>
-            <label htmlFor="userType" style={styles.label}>User Type</label>
-            <select
-              id="userType"
-              value={userType}
-              onChange={(e) => setUserType(e.target.value)}
-              style={styles.select}
-              disabled={isLoading}
-            >
-              <option value="student">Student</option>
-              <option value="ngo">NGO</option>
-              <option value="staff">Staff</option>
-              <option value="organiser">Organiser</option>
-              <option value="canteen">Canteen</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          
           <button 
             type="submit" 
             style={{
@@ -102,13 +81,13 @@ const LoginPage = ({ onLogin }) => {
             }}
             disabled={isLoading}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? 'Logging in...' : 'Login as Canteen'}
           </button>
         </form>
         
         <div style={styles.demoInfo}>
-          <h4>Demo Credentials:</h4>
-          <p>Use the credentials you've set up in your backend</p>
+          <h4>Canteen Access:</h4>
+          <p>Use your canteen credentials to log surplus food</p>
           <p>Make sure your backend server is running on port 4000</p>
         </div>
       </div>
@@ -171,14 +150,6 @@ const styles = {
     borderRadius: '5px',
     fontSize: '1rem'
   },
-  select: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '5px',
-    fontSize: '1rem',
-    backgroundColor: 'white'
-  },
   loginButton: {
     padding: '0.75rem',
     backgroundColor: '#4CAF50',
@@ -203,4 +174,4 @@ const styles = {
   }
 };
 
-export default LoginPage;
+export default LoginCanteen; 
